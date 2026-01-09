@@ -1,0 +1,114 @@
+---
+title: "Monte Carlo Integration Examples"
+author: "Uma Ravat"
+date: "PSTAT 194CS"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo = F}
+bfcolor <- function(x, color) {
+  if (knitr::is_latex_output()) {
+    sprintf("\\textcolor{%s}{\\textbf{%s}}", color, x)
+  } else if (knitr::is_html_output()) {
+    sprintf("<span style='color: %s;'><b>%s</b></span>", color, x)
+  } else x
+}
+```
+
+## Exercise 1: 
+
+If $g(x)=\frac{1}{\sqrt{2\pi}}e^{-x^{2}/2}, \quad -\infty < x < \infty$
+
+**Question 1**: Do you recognize this density function? Which density is it?  What are the parameters? 
+
+`r bfcolor("Solutions:", "blue")`
+
+Write your solution here 
+
+```{r}
+# Write any code here
+```
+
+**Question 2** Let $\theta$ be the probability that a standard normal variable falls between -1.96 and 1.96. Write this probability as an integral(use latex code to write the integral). Plot the density and shade the area that represents this probability. 
+
+
+`r bfcolor("Solutions:", "blue")`
+
+Write your solution here 
+
+```{r}
+# Write any code here
+```
+
+**Question 3** What is the value of $\theta$ from your previous knowledge? 
+
+`r bfcolor("Solutions:", "blue")`
+
+Write your solution here 
+
+```{r}
+# Write any code here
+```
+
+**Question 4** Approximate this familiar number using Monte Carlo methods in two ways (ie as ratio of number of sampled points and as a mean.)
+
+`r bfcolor("Solutions:", "blue")`
+**Method 1:**
+
+
+Write your solution here 
+
+```{r}
+# Write any code here
+```
+
+
+**Method 2:**
+
+
+Write your solution here 
+
+```{r}
+# Write any code here
+```
+
+
+**Question 5** Discuss the difference in the two approaches. Is one better than the other. Why? 
+
+`r bfcolor("Solutions:", "blue")`
+
+Write your solution here 
+
+```{r}
+# Write any code here
+```
+
+## Exercise 2:
+
+**Question 1:** Consider $\theta = \int_{0}^{1}\frac{1}{2+sin(1/y)}dy$. Compute a confidence interval for $\theta$.
+
+`r bfcolor("Solutions:", "blue")`
+
+Write your solution here 
+
+```{r}
+# Write any code here
+```
+
+**Question 2:** Come up with two estimators $\theta_1$ and $\theta_2$ for $\theta$. Compare their efficiency. Which one is more efficient and why? 
+
+`r bfcolor("Solutions:", "blue")`
+Write your solution here 
+
+```{r}
+# Write any code here
+```

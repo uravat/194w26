@@ -1,0 +1,111 @@
+---
+title: "1.1 Activity: Monte Carlo Integration and Paired t-Test"
+author: "Uma Ravat"
+date: "PSTAT 194CS"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo = F}
+bfcolor <- function(x, color) {
+  if (knitr::is_latex_output()) {
+    sprintf("\\textcolor{%s}{\\textbf{%s}}", color, x)
+  } else if (knitr::is_html_output()) {
+    sprintf("<span style='color: %s;'><b>%s</b></span>", color, x)
+  } else x
+}
+```
+
+## Learning Objectives
+
+- Design a Monte Carlo simulation from a probability statement
+- Interpret Monte Carlo simulation as numerical integration
+- Connect simulation-based reasoning to the paired t-test
+
+## Problem Setup
+
+$X1_i \sim N(6, 4), X2_i \sim N(5, 4), i = 1,...,25$
+
+Define $D = \bar{X1} - \bar{X2}$
+
+Goal: Estimate $P(0 < D < 2)$
+
+
+
+## Exercise 1:
+
+1. What is random?
+3. What event defines the probability?
+2. What should be repeatedly simulated?
+
+
+`r bfcolor("Solutions:", "blue")`
+
+## Exercise 2
+
+Question 1: Describe a Monte Carlo algorithm for estimating the probability.
+
+`r bfcolor("Solutions:", "blue")`
+
+Question 2: Complete the code.
+
+`r bfcolor("Solutions:", "blue")`
+
+```{r, echo=TRUE, eval=FALSE}
+mu1 <- 
+mu2 <- 
+sigma <- 
+n <- 
+
+# Generate sample from population 1
+X1 <- 
+# Generate sample from population 1
+X2 <- 
+
+D <- 
+```
+
+Question 3: Extend to many simulations.
+
+`r bfcolor("Solutions:", "blue")`
+
+```{r echo=TRUE, eval=FALSE}
+
+# might want to set.seed for reproducibility
+nsim <- 
+  
+# Create vector to store simulated differences
+D_sim <- numeric(nsim)
+
+for (i in 1:nsim) {
+  
+}
+
+prob_hat <- 
+```
+
+## Exercise 3
+
+Explain Monte Carlo as numerical integration.
+
+`r bfcolor("Solutions:", "blue")`
+
+## Exercise 4
+
+Plot histogram and discuss convergence.
+
+`r bfcolor("Solutions:", "blue")`
+
+## Exercise 5
+
+Define $Y_i$ so that $D = \bar{Y}$ and explain link to paired t-test.
+
+`r bfcolor("Solutions:", "blue")`
