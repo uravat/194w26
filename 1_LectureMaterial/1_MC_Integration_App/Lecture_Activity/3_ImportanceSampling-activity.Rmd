@@ -1,0 +1,139 @@
+---
+title: "Importance Sampling Activity"
+author: "Uma Ravat"
+date: "PSTAT 194CS"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Let's consider estimating the parameter
+
+
+\[
+\theta=\int_{0}^{1}\frac{e^{-x}}{1+x^{2}}dx
+\]
+
+
+We can think of this as
+
+
+\[
+\theta=\int_{-\infty}^{\infty}h(x)f(x)dx
+\]
+
+
+where 
+
+- $h(x)=\frac{e^{-x}}{(1+x^{2})}$ and 
+- $f(x)$ is the uniform density $f(x)=1$ for $x \in (0,1)$ and 0 otherwise.
+
+# Exercise 1: Importance sampling
+We will consider five importance sampling functions
+
+1. $g_{0}(x)=1$, $0 < x < 1$ (the uniform distribution)
+2. $g_{1}(x)=e^{-x}$, $0 < x < \infty$ (the exponential distribution)
+3. $g_{2}(x)=\frac{1}{\pi(1+x^{2})}$, $-\infty < x < \infty$. (the standard Cauchy distribution, which is the same as a $t$ distribution with 1 degree of freedom.)
+4. $g_{3}(x)=\frac{e^{-x}}{1-e^{-1}}$  $0 < x < 1$
+5. $g_{4}(x)=\frac{4}{(1+x^{2})\pi}$, $0 < x < 1$.
+
+
+
+For each of the importance sampling functions above, we will try and decide if this is a good importance sampling function to estimate $\theta$ using importance sampling algorithm
+
+
+# Question 1: 
+
+How do each of these importance sampling functions match the shape of  $h(x)f(x)$. Which one matches the shape of  $h(x)f(x)$ the most? 
+
+# Question 2: 
+
+When you draw a sample from each of these importance sampling functions, discuss how many of these samples will contribute correctly to the expected value you are trying to estimate. Will lot values be contributing or few be contributing. Accordingly discuss how the reweighting helps correct this. 
+
+_Hint_: Think of the support of each and the region of integration. What will be the integrand $h(x)f(x)$ for each of the sample values drawn from the importance sampling function. 
+
+If a lot of the values contribute to the expected value, we will have an efficient estimator.
+
+Based on your discussion, If we code up importance sampling algorithm for each importance sampling function, which importance sampling function(s) will yield the most efficient algorithm and which will be least efficient?
+
+# Question 3: 
+
+To code up importance sampling algorithm, we first need a way to generate samples from the importance sampling function. For each of the importance sampling functions, think about which `R` function you can use to draw samples from $g$.
+
+$g_{2}$ is the pdf of a standard Cauchy distribution, which is the same as a $t$ distribution with 1 degree of freedom, so `rt()` can be used for simulation.
+
+For $g_{3}(x)$ and $g_{4}(x)$ use the following code to generate a random sample from each. How can you verify that this code is generating samples correctly? Verify that it is indeed correctly drawing samples
+
+
+Note: This is the inverse transform method for generating samples. Methods to generate random samples can be a project if you are interested in it. Come and talk to me about it. 
+
+```{r}
+##  x ~ g_3 
+m = 10000
+u=runif(m)
+x=-log(1-u*(1-exp(-1)))
+```
+
+
+```{r}
+##  x ~ g_4 
+u=runif(m)
+x=tan(pi*u/4)
+```
+
+
+# Question 4: 
+
+Since all the importance functions will provide unbiased estimation, so the most efficient estimator will have the least standard error.
+
+Code up the algorithms. Is the most efficient one the one you thought it would be? 
+
+Implement Importance Sampling with each of the five importance sampling functions with samples of size $m = 10000$ and record the estimate $\hat{\theta}$ and its standard error. Use the formula from last time but you can use the `sd` function in `R`. 
+
+
+```{r, eval = FALSE}
+m=10000
+se=numeric(5) # store the se of the 5 estimates
+theta.hat=numeric(5) # store the 5 estimates
+
+hf=function(x){
+h=exp(-x)/(1+x^2)
+f=(x>0)*(x<1)
+h*f
+}
+
+## try g_0
+x=runif(m)
+hfg = hf(x)/1
+theta.hat[1] = add your code
+se[1] = add your code
+
+
+## try g_2
+x=rt(m,df=1)
+x[x>1]=2 ## to avoid overflow errors
+x[x<0]=2
+```
+
+
+# Exercise 2: Stratified sampling
+
+Consider $\theta=\int_{0}^{1}\frac{e^{-x}}{1+x^{2}}dx$ again.  
+
+## Question 1: 
+Find the standard monte-carlo estimate for $\theta$ and the variance of this estimator  computed from repeating the experiment $n=100$ times.
+
+
+## Question 2: 
+Find the stratified estimator for $\theta$ with 10 strata and the variance of this estimator  computed from repeating the experiment $n=100$ times.
+
+## Question 3
+Compare the standard Monte Carlo estimator to the stratified estimator for $\theta$ with 10 strata  computed from repeating the experiment $n=100$ times. Does it match your intuition? 
+

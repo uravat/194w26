@@ -1,0 +1,45 @@
+---
+title: 'PSTAT 194: Homework 1: <br> Chapters 5 Monte Carlo Methods'
+author: "WRITE YOUR LAST NAME, FIRST NAME, netid(not Perm ) HERE <br> Collaborated with: WRITE LAST NAME, FIRST NAME, netid(not Perm ) of any collaboraters"
+date: ""
+output:
+  html_document:
+    theme: readable
+    toc: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exercise 1
+
+Write a summary of methods we have covered. Include any important things to remember about
+each method. Think of this as a note card for the exam. 
+
+
+## Exercise 2 (5.2)
+Refer to Example 5.3. Compute a Monte Carlo estimate of the standard normal cdf, by generating from the Uniform(0,x) distribution. Compare your estimates with the normal cdf function pnorm. Compute an estimate of the variance of your Monte Carlo estimate of $\Phi(2)$, and a 95\% confidence interval for $\Phi(2)$.
+
+
+## Exercise 3 (5.4)
+
+Write a function to compute a Monte Carlo estimate of the Beta(3, 3) cdf, and use the function to estimate F(x) for $x = 0.1,0.2,\ldots 0.9$. Compare the estimates with the values returned by the pbeta function in R.
+
+## Exercise 4 (5.13)
+
+Find two importance functions f1 and f2 that are supported on $(1,\infty)$ and
+are ‘close’ to
+$$g(x) = \frac{x^2}{\sqrt{2\pi}} e^{-\frac{x^2}{2}} \quad x>1$$
+
+Which of your two importance functions should produce the smaller variance in estimating
+$$\int_1^{\infty}\frac{x^2}{\sqrt{2\pi}} e^{-\frac{x^2}{2}} dx $$
+by importance sampling? Explain.
+
+## Exercise 5 (5.14)
+
+Obtain a Monte Carlo estimate of
+$$\int_1^{\infty}\frac{x^2}{\sqrt{2\pi}} e^{-\frac{x^2}{2}} dx $$
+by importance sampling.
