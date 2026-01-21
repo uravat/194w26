@@ -1,0 +1,33 @@
+---
+title: "4. Activity: Acceleration methods"
+author: "Uma Ravat"
+date: "PSTAT 194CS"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Exercise 1: Antithetic variables
+
+Evaluate
+   \[
+   \int_{0}^{\infty}x^{2} e^{-x} dx
+   \]
+   
+# Question 1:  Is Classical monte carlo valid here? With importance sampling?
+
+
+# Question 2:  What are Antithetic variables used for?
+
+
+# Question 3: Is Antithetic variables approach a valid approach here? 
+
+
+# Question 4: Compare antithetic variable approach with simple monte-carlo. What is the reduction in variance?
