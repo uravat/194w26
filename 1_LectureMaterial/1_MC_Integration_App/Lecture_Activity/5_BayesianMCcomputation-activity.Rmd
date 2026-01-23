@@ -1,0 +1,131 @@
+---
+title: "Bayesian Monte Carlo Computation"
+author: "Uma Ravat"
+date: "PSTAT 194CS"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Exercise 1. Lecture example:  Estimate the expected value of the probability $E_{\theta}(g(X=2|\theta))$
+
+The probability that we draw three marbles we get exactly two blue is given by $g(X=2|\theta) = {3 \choose 2} \theta^2(1-\theta)^1$ where $\theta$ is now a random variable with pdf given by $P(\theta~|~x) = \frac{1}{B(3,2)} \theta^{(3-1)}(1-\theta)^{(2-1)} \sim \beta(\alpha = 3,\beta = 2 )$
+
+
+### Question 1.  Write code for Monte Carlo integration to estimate this expected value $E_{\theta}(g(X=2|\theta))$
+
+
+### Question 2. Evaluate this integral using calculus 
+
+
+
+### Question 3.  Compare the MC estimate of expected value with the true expected calculated by hand. 
+
+
+
+### Question 4. Is the MC estimate a good approximation? 
+
+
+
+## Exercise 2. Example: Estimating a normal mean with a Cauchy prior.
+
+  We will take $X \sim N(\theta,1)$  and $\theta \sim \mathrm{Cauchy}(0,1)$ so 
+  \[
+  f(x|\theta) = \frac{1}{\sqrt{2\pi}}\exp \left[-\frac{1}{2}(x - \theta)^2  \right]
+  \]
+  and
+  \[
+  g(\theta) = \frac{1}{\pi}\frac{1}{(1 + \theta^{2})}.
+  \]
+  We find
+  \[
+  g(\theta|x) \propto \exp \left[-\frac{1}{2}(x - \theta)^2  \right] \frac{1}{(1 + \theta^{2})}
+  \]
+  with
+  \[
+  C = \int \exp \left[-\frac{1}{2}(x - \theta)^2  \right] \frac{1}{(1 + \theta^{2})} d\theta
+  \]
+  and
+  \[
+  E (\theta | \mbox{data}) = \frac{ \int \theta \exp \left[-\frac{1}{2}(x - \theta)^2  \right] \frac{1}{(1 + \theta^{2})} d\theta }{C}.
+  \]
+  
+
+### Question 1 Monte Carlo computation of $C$ and posterior mean
+
+\[
+\int \exp \left[-\frac{1}{2}(x - \theta)^2  \right] \frac{1}{(1 + \theta^{2})} d\theta :
+\]
+We're looking for
+\[
+\int h(x)f(x)\,dx
+\]
+So write
+\[
+I = \int \,\pi \exp\left[-\frac{(x - \theta)^{2}}{2} \right]\,\frac{1}{\pi(1 + \theta^{2})}\, d\theta
+\]
+where we understand
+\[
+h(\theta) = \pi \exp\left[-\frac{(x - \theta)^{2}}{2} \right],\quad f(\theta) = \frac{1}{\pi(1 + \theta^{2})}
+\]
+
+**Algorithm:**
+
+
+1. simulate \(\theta_{1},\theta_{2},\ldots,\theta_{m}\sim \mathrm{Cauchy}(0,1)\)
+2. compute \(h(\theta_{1}),\,h(\theta_{2}),\ldots,h(\theta_{m})\).
+3. compute \(\overline{h}_{m}\).
+
+
+### Question 1: Code this algorithm to find $I$ or the normalizing constant $C$ and the posterior mean `post.mean`
+
+```{r}
+set.seed(156)  # make the experiment reproducible
+# Get the code to work first with above seed and then change seed to your zipcode + birthdate in format mmddyyyy and see the results you get
+m <- 2000   # number of simulated values
+x <- 3      # observed data
+
+# 1. simulate the prior
+## Write your code here
+
+
+# 2. estimate the normalizing constant C
+## Write your code here
+
+
+# 3. estimate the posterior mean post.mean
+## Write your code here
+
+
+## Print out your estimate for C and the post.mean
+## Write your code here
+
+
+## Compare with the true values given here
+print("The true values are C approx 0.34168057 and Posterior Mean = 2.284967653")
+```
+
+
+### Question 2: Bayesian Monte Carlo Computations Convergence
+While estimating the mean of a Normal distribution when our prior distribution is Cauchy, we generated a sample of size $m = 2000$ and took sample means. 
+
+Plot a running average of $C$ and `post.mean` to demonstrate the convergence of these MC estimates as sample size increases. 
+
+
+
+
+```{r}
+## Write your code here
+
+## Compute a running average plot of C and post.mean to assess convergence
+
+```
+
