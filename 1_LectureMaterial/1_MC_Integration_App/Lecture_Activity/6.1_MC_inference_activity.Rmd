@@ -1,0 +1,836 @@
+---
+title: "Monte Carlo Inference Activity"
+subtitle: "Exploring Robust Estimators through Simulation"
+author: "PSTAT 194CS"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: show
+    theme: flatly
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE,
+                      fig.width = 10, fig.height = 6)
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+# Note: install.packages("moments") if you don't have it
+if (!requireNamespace("moments", quietly = TRUE)) {
+  cat("Note: moments package not installed. Skewness calculation will be skipped.\n")
+}
+```
+
+# Introduction
+
+In this activity, you'll conduct your own Monte Carlo studies to understand how different estimators perform under contamination. You'll work through three exercises, building from guided exploration to independent investigation.
+
+## Learning Objectives
+
+By the end of this activity, you will be able to:
+
+1. ✓ Design and implement Monte Carlo simulation studies
+2. ✓ Compare estimator performance using MSE
+3. ✓ Interpret simulation results in context
+4. ✓ Formulate and test statistical hypotheses empirically
+
+## The Contamination Model
+
+Throughout these exercises, we'll work with the contamination model:
+
+$$pN(0, 1) + (1-p)N(0, 100)$$
+
+This represents data where:
+
+- A proportion $p$ of observations come from $N(0,1)$ (good data)
+- A proportion $(1-p)$ come from $N(0,100)$ (contaminated/outliers)
+- True mean we're trying to estimate: **0**
+
+---
+
+# Exercise 1: Trimmed Mean Estimator
+
+## Part A: Understanding the Code
+
+First, let's review the function for computing MSE of the trimmed mean:
+
+```{r}
+# Function to compute MSE of k-level trimmed mean
+trimmed_mse <- function(n, m, k, p) {
+  # n = sample size per iteration
+  # m = number of MC iterations
+  # k = trim level (removes k smallest and k largest)
+  # p = proportion of good data (1-p is contamination rate)
+  
+  tmean <- numeric(m)
+  
+  for(i in 1:m) {
+    # Generate contaminated sample
+    sigma <- sample(c(1, 10), size = n, replace = TRUE, 
+                    prob = c(p, 1-p))
+    x <- rnorm(n, 0, sigma)
+    x_sorted <- sort(x)
+    
+    # Compute trimmed mean
+    if(k == 0) {
+      tmean[i] <- mean(x_sorted)  # Regular mean
+    } else {
+      tmean[i] <- mean(x_sorted[(k+1):(n-k)])  # Trimmed mean
+    }
+  }
+  
+  # MSE calculation (true mean = 0)
+  mse <- mean(tmean^2)
+  se_mse <- sd(tmean^2) / sqrt(m)
+  
+  return(c(mse = mse, se = se_mse))
+}
+```
+
+### 🤔 Understanding Check (discuss with your group):
+
+1. **Why do we use `tmean^2` to compute MSE?**
+   
+   *Hint: What is MSE when the true parameter is 0?*
+   
+   <details>
+   <summary>Click for answer</summary>
+   MSE = E[(θ̂ - θ)²]. When θ = 0, this simplifies to E[θ̂²], which we estimate with mean(tmean^2).
+   </details>
+
+2. **What does k=0 represent?**
+   
+   <details>
+   <summary>Click for answer</summary>
+   k=0 means no trimming, so we get the regular sample mean.
+   </details>
+
+3. **If n=20 and k=5, how many observations are we using?**
+   
+   <details>
+   <summary>Click for answer</summary>
+   We remove 5 from each end, leaving 20-10=10 observations for the mean.
+   </details>
+
+## Part B: Run the Basic Study
+
+Let's replicate the analysis from class:
+
+```{r basic_study, cache=TRUE}
+set.seed(194)  # For reproducibility
+
+# Study parameters
+n <- 20        # Sample size
+m <- 10000     # MC iterations
+K <- n/2 - 1   # Maximum trim level
+
+# Storage for results
+results <- expand.grid(k = 0:9, p = c(1, 0.95, 0.9))
+results$mse <- NA
+results$se <- NA
+
+# Run simulations
+for(i in 1:nrow(results)) {
+  res <- trimmed_mse(n, m, results$k[i], results$p[i])
+  results$mse[i] <- res[1]
+  results$se[i] <- res[2]
+}
+
+# View results
+results %>%
+  mutate(contamination = paste0((1-p)*100, "%"),
+         mse = round(mse, 4),
+         se = round(se, 5)) %>%
+  select(k, contamination, mse, se) %>%
+  pivot_wider(names_from = contamination, 
+              values_from = c(mse, se)) %>%
+  kable(caption = "MSE (and SE) by Trim Level and Contamination") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+## Part C: Visualize Results
+
+```{r plot_results, fig.height=5}
+ggplot(results, aes(x = k, y = mse, color = factor(p), group = p)) +
+  geom_line(size = 1.5) +
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = mse - 2*se, ymax = mse + 2*se), 
+                width = 0.2, alpha = 0.5) +
+  scale_color_manual(values = c("green3", "orange", "red"),
+                     labels = c("No contamination (p=1)", 
+                               "5% contamination (p=0.95)", 
+                               "10% contamination (p=0.9)")) +
+  labs(title = "MSE of Trimmed Mean Estimators",
+       subtitle = "Error bars show ±2 SE",
+       x = "Trim Level (k)", 
+       y = "Mean Squared Error",
+       color = "Scenario") +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5, face = "bold"),
+        plot.subtitle = element_text(hjust = 0.5))
+```
+
+## Part D: Interpret the Results
+
+### Questions for Discussion:
+
+1. **What happens to MSE as we increase k when there's NO contamination (p=1)?**
+   
+   *Your answer:*
+   
+   ```
+   
+   
+   
+   ```
+
+2. **What trim level (k) gives the best (lowest) MSE for 5% contamination?**
+   
+   *Your answer:*
+   
+   ```
+   
+   
+   
+   ```
+
+3. **Why does this optimal trim level make sense?**
+   
+   *Hint: Think about how many contaminated observations you expect in a sample of 20.*
+   
+   *Your answer:*
+   
+   ```
+   
+   
+   
+   ```
+
+---
+
+# Exercise 2: Sample Median vs Trimmed Mean
+
+## Part A: Formulate Your Hypothesis
+
+Before running any code, think about how the sample median might perform.
+
+### 🧠 Intuition Building:
+
+1. **The median is equivalent to what trim level?**
+   
+   *Hint: For n=20, the median uses which observations?*
+   
+   *Your answer:*
+   
+   ```
+   
+   
+   ```
+
+2. **Prediction: Will the median be more or less robust than low-trim estimators?**
+   
+   *Your reasoning:*
+   
+   ```
+   
+   
+   
+   ```
+
+## Part B: Implement Median Comparison
+
+Now modify the code to include the median:
+
+```{r median_study, cache=TRUE}
+# Function to compute MSE for median
+median_mse <- function(n, m, p) {
+  med <- numeric(m)
+  
+  for(i in 1:m) {
+    sigma <- sample(c(1, 10), size = n, replace = TRUE, 
+                    prob = c(p, 1-p))
+    x <- rnorm(n, 0, sigma)
+    
+    med[i] <- median(x)
+  }
+  
+  mse <- mean(med^2)
+  se_mse <- sd(med^2) / sqrt(m)
+  
+  return(c(mse = mse, se = se_mse))
+}
+
+# Add median results to our previous results
+set.seed(194)
+median_results <- data.frame(
+  k = rep("Median", 3),
+  p = c(1, 0.95, 0.9)
+)
+
+for(i in 1:3) {
+  res <- median_mse(20, 10000, median_results$p[i])
+  median_results$mse[i] <- res[1]
+  median_results$se[i] <- res[2]
+}
+
+# Combine with previous results
+results_all <- results %>%
+  mutate(estimator = paste0("Trim k=", k),
+         k = as.character(k)) %>%
+  bind_rows(median_results %>% mutate(estimator = "Median")) %>%
+  mutate(contamination = (1-p)*100)
+
+# Plot comparison
+results_all %>%
+  filter(contamination %in% c(0, 5, 10)) %>%
+  ggplot(aes(x = reorder(estimator, mse), y = mse, fill = factor(contamination))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_fill_manual(values = c("green3", "orange", "red"),
+                    labels = c("0%", "5%", "10%")) +
+  labs(title = "Comparing All Estimators",
+       x = "Estimator", y = "MSE", fill = "Contamination") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "bottom")
+```
+
+## Part C: Analyze and Discuss
+
+Create a table comparing the median to other estimators:
+
+```{r}
+comparison_table <- results_all %>%
+  filter(contamination == 5) %>%
+  select(estimator, mse, se) %>%
+  arrange(mse) %>%
+  mutate(mse = round(mse, 4),
+         se = round(se, 5),
+         rank = row_number())
+
+comparison_table %>%
+  kable(caption = "Estimator Rankings for 5% Contamination") %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  row_spec(which(comparison_table$estimator == "Median"), 
+           bold = TRUE, background = "yellow")
+```
+
+### Discussion Questions:
+
+1. **Where does the median rank?**
+   
+   *Your answer:*
+   
+   ```
+   
+   
+   ```
+
+2. **Did this match your prediction from Part A?**
+   
+   *Your answer:*
+   
+   ```
+   
+   
+   ```
+
+3. **The median is a special case of which trimmed mean?**
+   
+   *Your answer:*
+   
+   ```
+   
+   
+   ```
+
+4. **Would the median work well for ANY distribution? Why or why not?**
+   
+   *Think about: What if the true distribution is very skewed?*
+   
+   *Your answer:*
+   
+   ```
+   
+   
+   
+   ```
+
+## Part D: Theoretical Verification
+
+For the uncontaminated case, we can compare to theory:
+
+```{r theoretical_comparison}
+# Theoretical values for N(0,1) with n=20
+n <- 20
+
+# Mean
+var_mean <- 1/n  # σ²/n
+mse_mean_theory <- var_mean
+
+# Median (approximate for normal)
+var_median_approx <- (pi/2) * (1/n)  # ≈ 1.57/n
+mse_median_theory <- var_median_approx
+
+cat("Theoretical MSE (no contamination, n=20):\n")
+cat("Mean:  ", round(mse_mean_theory, 4), "\n")
+cat("Median:", round(mse_median_theory, 4), "\n\n")
+
+cat("Our MC Estimates:\n")
+cat("Mean (k=0):", round(results_all$mse[results_all$estimator == "Trim k=0" & 
+                                          results_all$contamination == 0], 4), "\n")
+cat("Median:    ", round(results_all$mse[results_all$estimator == "Median" & 
+                                          results_all$contamination == 0], 4), "\n")
+```
+
+**Do they match? If not, why might there be small differences?**
+
+---
+
+# Exercise 3: Effect of Increased Contamination
+
+## Part A: Make Predictions
+
+You're now going to study what happens with **40% contamination** (p=0.6).
+
+### 🎯 Before coding, predict:
+
+1. **Will trimming help more or less than with 5% contamination?**
+   
+   *Your hypothesis:*
+   
+   ```
+   
+   
+   ```
+
+2. **What trim level do you think will be optimal?**
+   
+   *Your reasoning:*
+   
+   ```
+   
+   
+   ```
+
+3. **How will the regular mean (k=0) perform?**
+   
+   *Your prediction:*
+   
+   ```
+   
+   
+   ```
+
+## Part B: Run the Study
+
+```{r high_contamination, cache=TRUE}
+set.seed(194)
+
+# YOUR CODE HERE
+# Modify the parameters to study p=0.6 (40% contamination)
+# Compare to previous results
+
+# Hint: You can copy and modify the code from Exercise 1
+
+# Study parameters
+n <- 20
+m <- 10000
+
+# Run for p=0.6
+high_contam_results <- expand.grid(k = 0:9, p = 0.6)
+high_contam_results$mse <- NA
+high_contam_results$se <- NA
+
+for(i in 1:nrow(high_contam_results)) {
+  res <- trimmed_mse(n, m, high_contam_results$k[i], high_contam_results$p[i])
+  high_contam_results$mse[i] <- res[1]
+  high_contam_results$se[i] <- res[2]
+}
+
+# Add median
+median_40 <- median_mse(20, 10000, 0.6)
+```
+
+## Part C: Visualization and Comparison
+
+```{r compare_contamination_levels, fig.height=6}
+# Combine all contamination levels
+all_levels <- results %>%
+  mutate(k = as.character(k)) %>%
+  bind_rows(high_contam_results %>% mutate(k = as.character(k))) %>%
+  mutate(contamination_pct = (1-p)*100)
+
+# Plot all levels
+ggplot(all_levels, aes(x = as.numeric(k), y = mse, 
+                       color = factor(contamination_pct), 
+                       group = contamination_pct)) +
+  geom_line(size = 1.5) +
+  geom_point(size = 3) +
+  scale_color_manual(values = c("green3", "orange", "red", "purple"),
+                     name = "Contamination") +
+  labs(title = "Impact of Contamination Level on Optimal Trimming",
+       x = "Trim Level (k)", 
+       y = "Mean Squared Error") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+## Part D: Analysis Questions
+
+1. **What trim level is optimal for 40% contamination?**
+   
+   ```{r}
+   # Find optimal k
+   optimal_k <- high_contam_results$k[which.min(high_contam_results$mse)]
+   cat("Optimal k for 40% contamination:", optimal_k, "\n")
+   cat("MSE at optimal k:", 
+       round(min(high_contam_results$mse), 4), "\n")
+   ```
+   
+   *Your interpretation:*
+   
+   ```
+   
+   
+   ```
+
+2. **How much worse is the regular mean (k=0) at 40% vs 5% contamination?**
+   
+   ```{r}
+   # YOUR CODE: Compare MSE of k=0 at different contamination levels
+   
+   
+   ```
+
+3. **Create a summary table:**
+   
+   ```{r}
+   # Table showing optimal trim level for each contamination rate
+   summary_optimal <- all_levels %>%
+     group_by(contamination_pct) %>%
+     summarize(
+       optimal_k = k[which.min(mse)],
+       min_mse = min(mse),
+       mean_k0_mse = mse[k == "0"]
+     ) %>%
+     mutate(benefit_of_trimming = mean_k0_mse / min_mse)
+   
+   summary_optimal %>%
+     mutate(across(where(is.numeric), ~round(., 3))) %>%
+     kable(caption = "Optimal Trimming Strategy by Contamination Level") %>%
+     kable_styling(bootstrap_options = c("striped", "hover"))
+   ```
+
+4. **Did your predictions from Part A match the results?**
+   
+   *Reflection:*
+   
+   ```
+   
+   
+   
+   ```
+
+---
+
+# Exercise 4: Design Your Own Study! 🚀
+
+Now it's time to explore something that interests you!
+
+## Part A: Choose Your Research Question
+
+Here are some ideas (or create your own):
+
+### Option 1: Different Distributions
+What if the uncontaminated data isn't normal? Try:
+- Exponential distribution
+- Uniform distribution
+- t-distribution with low df
+
+### Option 2: Different Estimators
+Compare other robust estimators:
+- Winsorized mean (replace extremes instead of removing)
+- Interquartile mean (trim to 25th-75th percentiles)
+- Huber M-estimator
+
+### Option 3: Different Contamination Patterns
+What if contamination isn't symmetric?
+- One-sided contamination (only large values)
+- Multiple contamination sources
+- Increasing contamination with sample size
+
+### Option 4: Practical Application
+Apply to real data:
+- Stock returns with crashes
+- Sensor data with malfunctions
+- Survey data with trolls
+
+**Your chosen question:**
+
+```
+
+
+
+```
+
+## Part B: Design Your Study
+
+### Study Design Plan:
+
+1. **What are you testing?**
+   
+   ```
+   
+   
+   ```
+
+2. **What parameters will you vary?**
+   
+   ```
+   
+   
+   ```
+
+3. **How will you measure performance?**
+   
+   ```
+   
+   
+   ```
+
+4. **What do you expect to find?**
+   
+   ```
+   
+   
+   ```
+
+## Part C: Implement Your Study
+
+```{r your_study, cache=TRUE}
+# YOUR CODE HERE
+# Design and implement your Monte Carlo study
+
+set.seed(194)  # Keep for reproducibility
+
+# Example template:
+custom_study <- function() {
+  # Define your parameters
+  
+  # Run simulations
+  
+  # Calculate and return results
+  
+}
+
+# Run your study
+
+# Create visualizations
+
+```
+
+## Part D: Results and Interpretation
+
+### Findings:
+
+```{r}
+# Create tables and plots summarizing your results
+
+
+```
+
+### Interpretation:
+
+**What did you learn?**
+
+```
+
+
+
+```
+
+**Did the results surprise you?**
+
+```
+
+
+
+```
+
+**What are the practical implications?**
+
+```
+
+
+
+```
+
+### Theory Connection:
+
+**Are there theoretical results that support/explain your findings?**
+
+```
+
+
+
+```
+
+---
+
+# Reflection and Synthesis
+
+## Group Discussion Questions:
+
+1. **Across all exercises, what's the key trade-off with trimmed means?**
+   
+   *Your group's answer:*
+   
+   ```
+   
+   
+   ```
+
+2. **In practice, how would you choose a trim level without knowing the true contamination rate?**
+   
+   *Ideas:*
+   
+   ```
+   
+   
+   ```
+
+3. **What are the limitations of the contamination model we used?**
+   
+   *Your thoughts:*
+   
+   ```
+   
+   
+   ```
+
+4. **How could you extend this methodology to real data analysis?**
+   
+   *Applications:*
+   
+   ```
+   
+   
+   ```
+
+---
+
+# Bonus Challenges
+
+If you finish early, try these extensions:
+
+## Challenge 1: Confidence Intervals
+
+Compute confidence intervals for the MSE estimates and see if theoretical values fall within them.
+
+```{r eval=FALSE}
+# Template
+compute_mse_ci <- function(estimates, true_value, conf_level = 0.95) {
+  # YOUR CODE
+}
+```
+
+## Challenge 2: Power Analysis
+
+How many MC iterations (m) do you need to reliably detect a 10% difference in MSE between two estimators?
+
+## Challenge 3: Bias-Variance Decomposition
+
+Decompose MSE into bias² and variance for each estimator. Which dominates?
+
+```{r eval=FALSE}
+# Template
+bias_variance_decomp <- function(estimates, true_value) {
+  bias <- mean(estimates) - true_value
+  variance <- var(estimates)
+  
+  list(
+    bias_squared = bias^2,
+    variance = variance,
+    mse = bias^2 + variance
+  )
+}
+```
+
+---
+
+# Summary Presentation (3 minutes)
+
+Prepare a brief presentation for the class:
+
+## Slide 1: Research Question
+- What did you investigate?
+- Why is it interesting?
+
+## Slide 2: Methods
+- How did you design your MC study?
+- What parameters did you test?
+
+## Slide 3: Key Results
+- Show your main plot/table
+- Highlight most interesting finding
+
+## Slide 4: Conclusions
+- What did you learn?
+- Practical implications?
+- Connection to theory?
+
+---
+
+# Additional Resources
+
+## Further Reading
+
+1. **Robust Statistics:**
+   - Huber, P. J. (1981). *Robust Statistics*
+   - Hampel, F. R., et al. (1986). *Robust Statistics: The Approach Based on Influence Functions*
+
+2. **Monte Carlo Methods:**
+   - Rizzo, M. L. (2019). *Statistical Computing with R* - Chapter 6
+   - Robert, C. P., & Casella, G. (2004). *Monte Carlo Statistical Methods*
+
+3. **Real Applications:**
+   - Deliveroo article: https://deliveroo.engineering/2018/12/07/monte-carlo-power-analysis.html
+
+## R Packages to Explore
+
+```{r eval=FALSE}
+# Robust statistics
+install.packages("robustbase")
+install.packages("MASS")
+
+# Visualization
+install.packages("ggplot2")
+install.packages("plotly")  # Interactive plots
+
+# Power analysis
+install.packages("pwr")
+```
+
+---
+
+# Submission Checklist
+
+Before you finish, make sure you've:
+
+- [ ] Completed all three main exercises
+- [ ] Designed and run your own study (Exercise 4)
+- [ ] Interpreted all results (not just reported numbers)
+- [ ] Connected findings to theoretical concepts
+- [ ] Created clear visualizations
+- [ ] Prepared your 3-minute presentation
+- [ ] Discussed as a group and recorded insights
+
+**Turn in:** This completed worksheet + presentation slides
+
+---
+
+*Good luck and have fun exploring! Remember: The goal isn't just to get the right answer, but to understand the process of using Monte Carlo methods to answer statistical questions.*
